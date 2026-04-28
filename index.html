@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BandVibe Stem Mixer</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="mixer" aria-label="Stem mixer">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">BandVibe</p>
+            <h1>한성찬가</h1>
+          </div>
+          <div class="transport" aria-label="Playback controls">
+            <button class="icon-button" id="rewindButton" type="button" aria-label="처음으로 이동" title="처음으로 이동">
+              <span aria-hidden="true">⏮</span>
+            </button>
+            <button class="play-button" id="playButton" type="button" aria-label="재생" title="재생">
+              <span id="playIcon" aria-hidden="true">▶</span>
+            </button>
+          </div>
+        </header>
+
+        <section class="timeline" aria-label="Playback timeline">
+          <div class="time-row">
+            <span id="currentTime">0:00</span>
+            <span id="duration">0:00</span>
+          </div>
+          <input id="seekBar" class="seek-bar" type="range" min="0" max="1000" value="0" aria-label="재생 위치">
+          <div class="loop-panel" aria-label="Loop controls">
+            <div class="loop-range" id="loopRange">
+              <div class="loop-selection" id="loopSelection" aria-hidden="true"></div>
+              <input id="loopStartRange" type="range" min="0" max="1000" value="0" aria-label="반복 시작 지점">
+              <input id="loopEndRange" type="range" min="0" max="1000" value="1000" aria-label="반복 끝 지점">
+            </div>
+            <div class="loop-row">
+              <div class="loop-times">
+                <output id="loopStartValue">A 0:00</output>
+                <output id="loopEndValue">B 0:00</output>
+              </div>
+              <button class="text-button" id="loopToggleButton" type="button" aria-pressed="false">반복 끄기</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="master-panel" aria-label="Master controls">
+          <label class="master-volume" for="masterVolume">
+            <span>Master</span>
+            <input id="masterVolume" type="range" min="0" max="100" value="80">
+            <output id="masterVolumeValue" for="masterVolume">80%</output>
+          </label>
+          <button class="text-button" id="allOnButton" type="button">전체 켜기</button>
+          <button class="text-button" id="soloResetButton" type="button">솔로 해제</button>
+        </section>
+
+        <section class="track-list" id="trackList" aria-label="Instrument tracks"></section>
+
+        <section class="metronome-panel" aria-label="Metronome">
+          <div class="metronome-header">
+            <div>
+              <p class="section-label">Metronome</p>
+              <h2>클릭 트랙</h2>
+            </div>
+            <button class="text-button" id="metronomeToggle" type="button" aria-pressed="false">켜기</button>
+          </div>
+          <div class="metronome-controls">
+            <label class="metronome-control" for="bpmInput">
+              <span>BPM</span>
+              <input id="bpmInput" type="number" min="40" max="240" value="120">
+            </label>
+            <div class="offset-control" aria-label="Metronome offset">
+              <span>Offset</span>
+              <div class="offset-buttons">
+                <button class="icon-button small" id="offsetDown10Button" type="button" aria-label="메트로놈 10ms 빠르게" title="10ms 빠르게">◀◀</button>
+                <button class="icon-button small" id="offsetDown1Button" type="button" aria-label="메트로놈 1ms 빠르게" title="1ms 빠르게">◀</button>
+                <button class="text-button detect-inline" id="detectBpmButton" type="button">BPM 분석</button>
+                <button class="icon-button small" id="offsetUp1Button" type="button" aria-label="메트로놈 1ms 늦게" title="1ms 늦게">▶</button>
+                <button class="icon-button small" id="offsetUp10Button" type="button" aria-label="메트로놈 10ms 늦게" title="10ms 늦게">▶▶</button>
+              </div>
+              <output id="metronomeOffsetValue">0ms</output>
+            </div>
+            <span class="bpm-status" id="bpmStatus" aria-live="polite">드럼 스템 기준</span>
+            <label class="metronome-control" for="metronomeVolume">
+              <span>Volume</span>
+              <input id="metronomeVolume" type="range" min="0" max="100" value="50">
+              <output id="metronomeVolumeValue" for="metronomeVolume">50%</output>
+            </label>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <template id="trackTemplate">
+      <article class="track">
+        <div class="track-main">
+          <label class="toggle">
+            <input class="track-enabled" type="checkbox" checked>
+            <span class="toggle-box" aria-hidden="true"></span>
+            <span class="track-name"></span>
+          </label>
+          <button class="solo-button" type="button">Solo</button>
+        </div>
+        <label class="volume-control">
+          <span class="volume-label">Volume</span>
+          <input class="track-volume" type="range" min="0" max="100" value="50">
+          <output class="track-volume-value">50%</output>
+        </label>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>

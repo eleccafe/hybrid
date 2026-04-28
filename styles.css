@@ -1,0 +1,510 @@
+:root {
+  color-scheme: dark;
+  --bg: #111316;
+  --panel: #1b2025;
+  --panel-strong: #222932;
+  --line: #343d48;
+  --text: #f3f6f8;
+  --muted: #aab4bf;
+  --accent: #22c55e;
+  --accent-strong: #16a34a;
+  --warn: #f59e0b;
+  --shadow: 0 20px 70px rgba(0, 0, 0, 0.3);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    linear-gradient(120deg, rgba(34, 197, 94, 0.14), transparent 34%),
+    radial-gradient(circle at 90% 8%, rgba(245, 158, 11, 0.18), transparent 25%),
+    var(--bg);
+  color: var(--text);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app-shell {
+  width: min(1080px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 36px 0;
+}
+
+.mixer {
+  background: rgba(27, 32, 37, 0.94);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.topbar,
+.master-panel,
+.metronome-panel,
+.track {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar {
+  justify-content: space-between;
+  padding: 28px;
+  background: var(--panel-strong);
+  border-bottom: 1px solid var(--line);
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.section-label {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 3.5rem);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.transport {
+  display: flex;
+  gap: 10px;
+}
+
+.icon-button,
+.play-button,
+.text-button,
+.solo-button {
+  border: 1px solid var(--line);
+  color: var(--text);
+  background: #15191d;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.icon-button,
+.play-button {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+}
+
+.icon-button.small {
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+}
+
+.play-button {
+  width: 58px;
+  height: 58px;
+  background: var(--accent);
+  color: #07110b;
+  border-color: var(--accent);
+  font-weight: 900;
+}
+
+button:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.timeline {
+  padding: 24px 28px 14px;
+}
+
+.time-row {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 10px;
+}
+
+.seek-bar,
+.track-volume,
+#metronomeVolume,
+#masterVolume {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.loop-panel {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.loop-range {
+  position: relative;
+  height: 28px;
+}
+
+.loop-range::before {
+  content: "";
+  position: absolute;
+  top: 11px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 999px;
+  background: #11161a;
+}
+
+.loop-selection {
+  position: absolute;
+  top: 11px;
+  left: var(--loop-start, 0%);
+  right: calc(100% - var(--loop-end, 100%));
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.45);
+  pointer-events: none;
+}
+
+.loop-range input {
+  appearance: none;
+  -webkit-appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+}
+
+.loop-range input::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.loop-range input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  border: 2px solid #07110b;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.loop-range input::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.loop-range input::-moz-range-progress {
+  background: transparent;
+}
+
+.loop-range input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #07110b;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+#loopStartRange {
+  z-index: 2;
+}
+
+#loopEndRange {
+  z-index: 3;
+}
+
+.loop-row,
+.loop-times {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.loop-row {
+  justify-content: space-between;
+}
+
+.loop-panel output {
+  color: var(--muted);
+  text-align: left;
+}
+
+#loopToggleButton.active {
+  background: var(--accent);
+  color: #07110b;
+  border-color: var(--accent);
+}
+
+.master-panel {
+  flex-wrap: wrap;
+  padding: 18px 28px 26px;
+  border-bottom: 1px solid var(--line);
+}
+
+.master-volume,
+.volume-control {
+  display: grid;
+  grid-template-columns: 86px minmax(160px, 1fr) 52px;
+  align-items: center;
+  gap: 12px;
+}
+
+.master-volume {
+  flex: 1 1 440px;
+}
+
+output {
+  color: var(--muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.text-button,
+.solo-button {
+  min-height: 38px;
+  border-radius: 6px;
+  padding: 0 14px;
+  font-weight: 700;
+}
+
+.track-list {
+  display: grid;
+  gap: 1px;
+  background: var(--line);
+}
+
+.metronome-panel {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 24px 28px 28px;
+  background: #181d22;
+  border-top: 1px solid var(--line);
+}
+
+.metronome-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.metronome-controls {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(300px, 440px) minmax(120px, 180px) minmax(240px, 1fr);
+  gap: 16px;
+}
+
+.metronome-control {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.offset-control {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.offset-buttons {
+  display: grid;
+  grid-template-columns: 38px 38px minmax(92px, 1fr) 38px 38px;
+  align-items: center;
+  gap: 8px;
+}
+
+#metronomeOffsetValue {
+  color: var(--muted);
+  text-align: center;
+}
+
+.metronome-control input[type="number"] {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 12px;
+  background: #11161a;
+  color: var(--text);
+}
+
+.detect-inline {
+  min-width: 0;
+  padding: 0 10px;
+}
+
+.bpm-status {
+  align-self: end;
+  min-height: 18px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.metronome-control:has(input[type="range"]) {
+  grid-template-columns: 86px minmax(160px, 1fr) 52px;
+  color: var(--text);
+}
+
+.track {
+  justify-content: space-between;
+  background: var(--panel);
+  padding: 18px 28px;
+}
+
+.track-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 220px;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.track-enabled {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-box {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--line);
+  border-radius: 5px;
+  background: #11161a;
+}
+
+.track-enabled:checked + .toggle-box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.track-enabled:checked + .toggle-box::after {
+  content: "";
+  width: 6px;
+  height: 11px;
+  border: solid #07110b;
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg) translateY(-1px);
+}
+
+.track-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.solo-button.active {
+  background: var(--warn);
+  color: #151006;
+  border-color: var(--warn);
+}
+
+.volume-control {
+  flex: 1 1 460px;
+}
+
+.volume-label {
+  color: var(--muted);
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    width: min(100% - 20px, 1080px);
+    padding: 10px 0;
+  }
+
+  .topbar,
+  .track {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .topbar,
+  .timeline,
+  .master-panel,
+  .metronome-panel,
+  .track {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .transport {
+    width: 100%;
+  }
+
+  .play-button,
+  .icon-button {
+    flex: 1;
+    border-radius: 6px;
+  }
+
+  .master-volume,
+  .metronome-control:has(input[type="range"]),
+  .volume-control {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .loop-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .metronome-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .metronome-controls {
+    grid-template-columns: 1fr;
+  }
+
+  output {
+    text-align: left;
+  }
+}
