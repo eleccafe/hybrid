@@ -1,12 +1,12 @@
 const tracks = [
-  { name: "Vocals", file: "한성찬가 (Vocals).mp3" },
-  { name: "Backing Vocals", file: "한성찬가 (Backing Vocals).mp3" },
-  { name: "Guitar", file: "한성찬가 (Guitar).mp3" },
-  { name: "Keyboard", file: "한성찬가 (Keyboard).mp3" },
-  { name: "Synth", file: "한성찬가 (Synth).mp3" },
-  { name: "Bass", file: "한성찬가 (Bass).mp3" },
-  { name: "Drums", file: "한성찬가 (Drums).mp3" },
-  { name: "Percussion", file: "한성찬가 (Percussion).mp3" },
+  { name: "Vocals", file: "한성의 이름 아래 (Vocals).mp3" },
+  { name: "Backing Vocals", file: "한성의 이름 아래 (Backing Vocals).mp3" },
+  { name: "Guitar", file: "한성의 이름 아래 (Guitar).mp3" },
+  { name: "Keyboard", file: "한성의 이름 아래 (Keyboard).mp3" },
+  { name: "Synth", file: "한성의 이름 아래 (Synth).mp3" },
+  { name: "Bass", file: "한성의 이름 아래 (Bass).mp3" },
+  { name: "Drums", file: "한성의 이름 아래 (Drums).mp3" },
+  { name: "Percussion", file: "한성의 이름 아래 (Percussion).mp3" },
 ];
 
 const state = {
