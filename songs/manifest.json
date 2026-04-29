@@ -1,0 +1,34 @@
+[
+  {
+    "title": "한성의 이름 아래",
+    "folder": "한성의 이름 아래",
+    "tracks": [
+      { "name": "Vocals", "file": "한성의 이름 아래 (Vocals).mp3" },
+      { "name": "Backing Vocals", "file": "한성의 이름 아래 (Backing Vocals).mp3" },
+      { "name": "Guitar", "file": "한성의 이름 아래 (Guitar).mp3" },
+      { "name": "Keyboard", "file": "한성의 이름 아래 (Keyboard).mp3" },
+      { "name": "Synth", "file": "한성의 이름 아래 (Synth).mp3" },
+      { "name": "Bass", "file": "한성의 이름 아래 (Bass).mp3" },
+      { "name": "Drums", "file": "한성의 이름 아래 (Drums).mp3" },
+      { "name": "Percussion", "file": "한성의 이름 아래 (Percussion).mp3" }
+    ]
+  },
+  {
+    "title": "She is King",
+    "folder": "She is King",
+    "tracks": [
+      { "name": "Vocals", "file": "She is King (Vocals).mp3" },
+      { "name": "Backing Vocals", "file": "She is King (Backing Vocals).mp3" },
+      { "name": "Guitar", "file": "She is King (Guitar).mp3" },
+      { "name": "Keyboard", "file": "She is King (Keyboard).mp3" },
+      { "name": "Synth", "file": "She is King (Synth).mp3" },
+      { "name": "Bass", "file": "She is King (Bass).mp3" },
+      { "name": "Drums", "file": "She is King (Drums).mp3" },
+      { "name": "Percussion", "file": "She is King (Percussion).mp3" },
+      { "name": "Brass", "file": "She is King (Brass).mp3" },
+      { "name": "Strings", "file": "She is King (Strings).mp3" },
+      { "name": "Woodwinds", "file": "She is King (Woodwinds).mp3" },
+      { "name": "FX", "file": "She is King (FX).mp3" }
+    ]
+  }
+]

@@ -1,12 +1,18 @@
-const tracks = [
-  { name: "Vocals", file: "한성의 이름 아래 (Vocals).mp3" },
-  { name: "Backing Vocals", file: "한성의 이름 아래 (Backing Vocals).mp3" },
-  { name: "Guitar", file: "한성의 이름 아래 (Guitar).mp3" },
-  { name: "Keyboard", file: "한성의 이름 아래 (Keyboard).mp3" },
-  { name: "Synth", file: "한성의 이름 아래 (Synth).mp3" },
-  { name: "Bass", file: "한성의 이름 아래 (Bass).mp3" },
-  { name: "Drums", file: "한성의 이름 아래 (Drums).mp3" },
-  { name: "Percussion", file: "한성의 이름 아래 (Percussion).mp3" },
+const fallbackSongs = [
+  {
+    title: "한성의 이름 아래",
+    folder: "한성의 이름 아래",
+    tracks: [
+      { name: "Vocals", file: "한성의 이름 아래 (Vocals).mp3" },
+      { name: "Backing Vocals", file: "한성의 이름 아래 (Backing Vocals).mp3" },
+      { name: "Guitar", file: "한성의 이름 아래 (Guitar).mp3" },
+      { name: "Keyboard", file: "한성의 이름 아래 (Keyboard).mp3" },
+      { name: "Synth", file: "한성의 이름 아래 (Synth).mp3" },
+      { name: "Bass", file: "한성의 이름 아래 (Bass).mp3" },
+      { name: "Drums", file: "한성의 이름 아래 (Drums).mp3" },
+      { name: "Percussion", file: "한성의 이름 아래 (Percussion).mp3" },
+    ],
+  },
 ];
 
 const state = {
@@ -19,7 +25,16 @@ const state = {
   loopEnd: 0,
   loopEnabled: false,
   soloTrack: null,
+  currentSongIndex: 0,
 };
+
+let songLibrary = fallbackSongs;
+let currentSong = fallbackSongs[0];
+let currentMetadata = {};
+let tracks = currentSong.tracks;
+let mixers = [];
+
+const primaryTrackNames = ["Vocals", "Guitar", "Keyboard", "Bass", "Drums"];
 
 const playButton = document.querySelector("#playButton");
 const playIcon = document.querySelector("#playIcon");
@@ -27,6 +42,9 @@ const rewindButton = document.querySelector("#rewindButton");
 const seekBar = document.querySelector("#seekBar");
 const currentTimeLabel = document.querySelector("#currentTime");
 const durationLabel = document.querySelector("#duration");
+const songTitle = document.querySelector("#songTitle");
+const songSelect = document.querySelector("#songSelect");
+const youtubeButton = document.querySelector("#youtubeButton");
 const loopStartRange = document.querySelector("#loopStartRange");
 const loopEndRange = document.querySelector("#loopEndRange");
 const loopToggleButton = document.querySelector("#loopToggleButton");
@@ -61,10 +79,108 @@ const metronome = {
   offsetSeconds: 0,
 };
 
-const mixers = tracks.map((track, index) => {
-  const audio = new Audio(`songs/${encodeURIComponent(track.file)}`);
-  audio.preload = "metadata";
+function getSongFileUrl(song, file) {
+  return `songs/${encodeURIComponent(song.folder)}/${encodeURIComponent(file)}`;
+}
 
+function getSongMetadataUrl(song) {
+  return `songs/${encodeURIComponent(song.folder)}/metadata.json`;
+}
+
+function normalizeExternalUrl(url) {
+  const trimmedUrl = typeof url === "string" ? url.trim() : "";
+  if (/^(youtube\.com|www\.youtube\.com|youtu\.be)\//i.test(trimmedUrl)) {
+    return `https://${trimmedUrl}`;
+  }
+
+  return trimmedUrl;
+}
+
+function isValidExternalUrl(url) {
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.protocol === "https:" || parsedUrl.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+function updateMetadataUi(metadata = {}) {
+  currentMetadata = metadata;
+  const youtubeUrl = normalizeExternalUrl(metadata.youtubeUrl);
+  const hasYoutubeUrl = isValidExternalUrl(youtubeUrl);
+
+  youtubeButton.classList.toggle("disabled", !hasYoutubeUrl);
+  youtubeButton.toggleAttribute("href", hasYoutubeUrl);
+  youtubeButton.setAttribute("aria-disabled", String(!hasYoutubeUrl));
+  youtubeButton.dataset.url = hasYoutubeUrl ? youtubeUrl : "";
+  youtubeButton.target = hasYoutubeUrl ? "_blank" : "";
+  youtubeButton.rel = hasYoutubeUrl ? "noopener noreferrer" : "";
+  if (hasYoutubeUrl) {
+    youtubeButton.href = youtubeUrl;
+  }
+  youtubeButton.title = hasYoutubeUrl ? "YouTube에서 열기" : "YouTube 링크 없음";
+  youtubeButton.setAttribute("aria-label", hasYoutubeUrl ? `${currentSong.title} YouTube 링크 열기` : "YouTube 링크 없음");
+}
+
+function parseMetadata(text) {
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    const youtubeMatch = text.match(/"youtubeUrl"\s*:\s*"([^"]+)"/);
+    if (youtubeMatch) {
+      return { youtubeUrl: youtubeMatch[1] };
+    }
+    throw error;
+  }
+}
+
+async function loadSongMetadata(song) {
+  updateMetadataUi({});
+
+  try {
+    const response = await fetch(getSongMetadataUrl(song), { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`metadata ${response.status}`);
+    }
+
+    const metadata = parseMetadata(await response.text());
+    if (song === currentSong) {
+      updateMetadataUi(metadata);
+    }
+  } catch (error) {
+    if (song === currentSong) {
+      updateMetadataUi({});
+    }
+    console.warn(`${song.title} metadata could not be loaded.`, error);
+  }
+}
+
+function createAudio(track) {
+  const audio = new Audio(getSongFileUrl(currentSong, track.file));
+  audio.preload = "metadata";
+  audio.addEventListener("loadedmetadata", syncDuration);
+  audio.addEventListener("ended", handleTrackEnd);
+  return audio;
+}
+
+function getTrackGroups() {
+  const primaryGroups = primaryTrackNames
+    .map((name) => {
+      const track = tracks.find((item) => item.name === name);
+      return track ? { name, tracks: [track] } : null;
+    })
+    .filter(Boolean);
+  const otherTracks = tracks.filter((track) => !primaryTrackNames.includes(track.name));
+
+  if (otherTracks.length > 0) {
+    primaryGroups.push({ name: "Others", tracks: otherTracks });
+  }
+
+  return primaryGroups;
+}
+
+function createMixer(group, index) {
   const node = template.content.firstElementChild.cloneNode(true);
   const enabled = node.querySelector(".track-enabled");
   const name = node.querySelector(".track-name");
@@ -72,12 +188,13 @@ const mixers = tracks.map((track, index) => {
   const volumeValue = node.querySelector(".track-volume-value");
   const soloButton = node.querySelector(".solo-button");
 
-  name.textContent = track.name;
+  name.textContent = group.name;
   trackList.append(node);
 
   const mixer = {
     index,
-    audio,
+    name: group.name,
+    audios: group.tracks.map(createAudio),
     enabled,
     volume,
     volumeValue,
@@ -96,11 +213,102 @@ const mixers = tracks.map((track, index) => {
     updateSoloState();
     updateVolumes();
   });
-  audio.addEventListener("loadedmetadata", syncDuration);
-  audio.addEventListener("ended", handleTrackEnd);
 
   return mixer;
-});
+}
+
+function renderMixers() {
+  trackList.replaceChildren();
+  mixers = getTrackGroups().map(createMixer);
+}
+
+function resetPlaybackUi() {
+  currentTimeLabel.textContent = "0:00";
+  durationLabel.textContent = "0:00";
+  seekBar.value = 0;
+  loopStartRange.value = 0;
+  loopEndRange.value = 1000;
+  loopSelection.style.setProperty("--loop-start", "0%");
+  loopSelection.style.setProperty("--loop-end", "100%");
+  playIcon.textContent = "▶";
+  playButton.setAttribute("aria-label", "재생");
+  playButton.setAttribute("title", "재생");
+}
+
+function stopCurrentSong() {
+  mixers.forEach((mixer) => {
+    mixer.audios.forEach((audio) => {
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+    });
+  });
+  state.isPlaying = false;
+}
+
+function resetSongState() {
+  state.duration = 0;
+  state.playbackTime = 0;
+  state.loopStart = 0;
+  state.loopEnd = 0;
+  state.loopEnabled = false;
+  state.soloTrack = null;
+  state.seeking = false;
+  resetPlaybackUi();
+}
+
+function populateSongSelect() {
+  songSelect.replaceChildren();
+  songLibrary.forEach((song, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = song.title;
+    songSelect.append(option);
+  });
+  songSelect.value = String(state.currentSongIndex);
+}
+
+function loadSong(index) {
+  const nextSong = songLibrary[index] || songLibrary[0];
+  if (!nextSong) {
+    return;
+  }
+
+  stopCurrentSong();
+  state.currentSongIndex = songLibrary.indexOf(nextSong);
+  currentSong = nextSong;
+  tracks = currentSong.tracks;
+  songTitle.textContent = currentSong.title;
+  resetSongState();
+  renderMixers();
+  loadSongMetadata(currentSong);
+  updateSoloState();
+  updateVolumes();
+  updateLoopLabels();
+}
+
+async function loadSongLibrary() {
+  try {
+    const response = await fetch("songs/manifest.json", { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`manifest ${response.status}`);
+    }
+
+    const songs = await response.json();
+    if (Array.isArray(songs) && songs.length > 0) {
+      songLibrary = songs.filter((song) => song.title && song.folder && Array.isArray(song.tracks));
+    }
+  } catch (error) {
+    console.warn("Song manifest could not be loaded. Using fallback song list.", error);
+  }
+
+  if (songLibrary.length === 0) {
+    songLibrary = fallbackSongs;
+  }
+
+  populateSongSelect();
+  loadSong(0);
+}
 
 function formatTime(seconds) {
   const safeSeconds = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
@@ -111,7 +319,7 @@ function formatTime(seconds) {
 
 function syncDuration() {
   const loadedDurations = mixers
-    .map((mixer) => mixer.audio.duration)
+    .flatMap((mixer) => mixer.audios.map((audio) => audio.duration))
     .filter((duration) => Number.isFinite(duration));
 
   state.duration = Math.max(0, ...loadedDurations);
@@ -126,8 +334,10 @@ function updateVolumes() {
   mixers.forEach((mixer) => {
     const soloAllowsTrack = state.soloTrack === null || state.soloTrack === mixer.index;
     const enabled = mixer.enabled.checked && soloAllowsTrack;
-    mixer.audio.muted = !enabled;
-    mixer.audio.volume = enabled ? mixer.level * state.masterVolume : 0;
+    mixer.audios.forEach((audio) => {
+      audio.muted = !enabled;
+      audio.volume = enabled ? mixer.level * state.masterVolume : 0;
+    });
   });
 }
 
@@ -138,15 +348,33 @@ function updateSoloState() {
   });
 }
 
+function isLoadedTrack(mixer) {
+  return mixer.audios.some((audio) => Number.isFinite(audio.duration) && audio.readyState >= HTMLMediaElement.HAVE_METADATA);
+}
+
+function getMixerCurrentTime(mixer) {
+  const currentTimes = mixer.audios.map((audio) => audio.currentTime).filter((time) => Number.isFinite(time));
+  return Math.max(0, ...currentTimes);
+}
+
 function getLeadTrack() {
-  return mixers.find((mixer) => Number.isFinite(mixer.audio.duration)) || mixers[0];
+  const preferredNames = ["Drums", "Percussion", "Bass"];
+  return (
+    preferredNames
+      .map((name) => mixers.find((mixer) => mixer.name === name && isLoadedTrack(mixer)))
+      .find(Boolean) ||
+    mixers.find(isLoadedTrack) ||
+    mixers[0]
+  );
 }
 
 function getCurrentPlaybackTime() {
-  const currentTimes = mixers
-    .map((mixer) => mixer.audio.currentTime)
-    .filter((time) => Number.isFinite(time));
+  const leadTrack = getLeadTrack();
+  if (leadTrack) {
+    return getMixerCurrentTime(leadTrack);
+  }
 
+  const currentTimes = mixers.flatMap((mixer) => mixer.audios.map((audio) => audio.currentTime)).filter((time) => Number.isFinite(time));
   return Math.max(0, ...currentTimes);
 }
 
@@ -154,9 +382,11 @@ function syncTrackTimes(targetTime) {
   state.playbackTime = Math.min(Math.max(targetTime, 0), state.duration || targetTime);
 
   mixers.forEach((mixer) => {
-    if (Number.isFinite(mixer.audio.duration)) {
-      mixer.audio.currentTime = Math.min(state.playbackTime, mixer.audio.duration);
-    }
+    mixer.audios.forEach((audio) => {
+      if (Number.isFinite(audio.duration) && audio.readyState >= HTMLMediaElement.HAVE_METADATA) {
+        audio.currentTime = Math.min(state.playbackTime, audio.duration);
+      }
+    });
   });
 }
 
@@ -190,7 +420,8 @@ async function playAll() {
   updateVolumes();
 
   try {
-    await Promise.all(mixers.map((mixer) => mixer.audio.play()));
+    await Promise.all(mixers.flatMap((mixer) => mixer.audios.map((audio) => audio.play())));
+    syncTrackTimes(resumeTime);
     state.isPlaying = true;
     playIcon.textContent = "⏸";
     playButton.setAttribute("aria-label", "일시정지");
@@ -204,7 +435,9 @@ async function playAll() {
 
 function pauseAll() {
   state.playbackTime = getCurrentPlaybackTime();
-  mixers.forEach((mixer) => mixer.audio.pause());
+  mixers.forEach((mixer) => {
+    mixer.audios.forEach((audio) => audio.pause());
+  });
   state.isPlaying = false;
   playIcon.textContent = "▶";
   playButton.setAttribute("aria-label", "재생");
@@ -212,7 +445,7 @@ function pauseAll() {
 }
 
 function handleTrackEnd() {
-  const activeAudios = mixers.filter((mixer) => !mixer.audio.paused);
+  const activeAudios = mixers.flatMap((mixer) => mixer.audios).filter((audio) => !audio.paused);
   if (activeAudios.length === 0) {
     pauseAll();
   }
@@ -365,7 +598,7 @@ async function detectBpm() {
       throw new Error("BPM 분석은 로컬 서버에서 실행해야 합니다.");
     }
 
-    const url = new URL(`songs/${encodeURIComponent(track.file)}`, window.location.href);
+    const url = new URL(getSongFileUrl(currentSong, track.file), window.location.href);
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`MP3 파일을 읽지 못했습니다. (${response.status})`);
@@ -449,6 +682,10 @@ playButton.addEventListener("click", () => {
   } else {
     playAll();
   }
+});
+
+songSelect.addEventListener("change", () => {
+  loadSong(Number(songSelect.value));
 });
 
 rewindButton.addEventListener("click", () => {
@@ -544,7 +781,5 @@ metronomeVolume.addEventListener("input", () => {
   metronomeVolumeValue.textContent = `${metronomeVolume.value}%`;
 });
 
-updateSoloState();
-updateVolumes();
-updateLoopLabels();
+loadSongLibrary();
 renderProgress();

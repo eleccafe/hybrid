@@ -12,8 +12,17 @@
         <header class="topbar">
           <div>
             <p class="eyebrow">Professor Hybrid</p>
-            <h1>한성의 이름 아래</h1>
+            <div class="song-heading">
+              <h1 id="songTitle">한성의 이름 아래</h1>
+              <a class="youtube-button disabled" id="youtubeButton" aria-disabled="true" aria-label="YouTube 링크 열기" title="YouTube 링크 없음">
+                YouTube
+              </a>
+            </div>
           </div>
+          <label class="song-picker" for="songSelect">
+            <span>Song</span>
+            <select id="songSelect" aria-label="노래 선택"></select>
+          </label>
           <div class="transport" aria-label="Playback controls">
             <button class="icon-button" id="rewindButton" type="button" aria-label="처음으로 이동" title="처음으로 이동">
               <span aria-hidden="true">⏮</span>
